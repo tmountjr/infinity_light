@@ -1,8 +1,11 @@
+// TODO: using delay() on the animations is going to potentially cause issues with
+// the interrupts. Better to use millis() and reset the "delay" timer on each change.
+
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 
-#define NUM_LEDS 6
-#define BRIGHTNESS 128
+#define NUM_LEDS 22 // Probably 66 at the end of the day
+#define BRIGHTNESS 255
 #define PIXEL_PIN 0
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_LEDS, PIXEL_PIN);

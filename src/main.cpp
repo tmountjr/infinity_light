@@ -35,6 +35,39 @@ void setup()
 
 void loop() {
   display();
-  delay(50);
 }
 
+/**
+ * Basically the loop() method has a delay, so every 50ms the display() method runs.
+ * display() comes fron animations.h and every iteration, it detects
+ * which animation pattern should be processed and runs that code.
+ * 
+ * For some methods, eg. theaterChase(), there's an additional delay
+ * built into the method. So display() fires, there's a 20ms delay
+ * between stages of the animation, and then there's another 50ms
+ * delay after the animation completes.
+ * 
+ * What should happen is that each animation maintains a global
+ * way of figuring out what to do next and when. So in the case of
+ * theaterChase(), every third pixel turns on, waits 20ms, then turns
+ * off again, eg for a 12px strip:
+ *   q = 0
+ *     0, 3, 6, 9, 12 turn on
+ *     delay 20ms
+ *     0, 3, 6, 9, 12 turn off
+ *   q = 1
+ *     1, 4, 7, 10, (13 but that doesn't exist) turn on
+ *     delay 20ms
+ *     1, 4, 7, 10 turn off
+ *   q = 2
+ *     2, 5, 8, 11 turn on
+ *     delay 20ms
+ *     2, 5, 8, 11 turn off
+ *   end of theaterChase(), delay 50ms
+ * 
+ * Total time to execute theaterChase: 110ms of delays
+ * 
+ * Better approach might be this: every time theaterChase() is called,
+ * the method checks if 20ms have elapsed since the last call.
+ * If so, 
+ */
