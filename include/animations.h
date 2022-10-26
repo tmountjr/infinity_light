@@ -158,7 +158,6 @@ void initTheaterChase()
 
 /**
  * Theatre-style crawling lights.
- * TODO: refactor wait
  */
 void theaterChase(uint32_t c)
 {
