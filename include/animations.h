@@ -146,13 +146,11 @@ void rainbowCycle(uint8_t wait)
 void initTheaterChase()
 {
   /**
-   * not_before: don't run the next frame before this particular ms
    * context:
    *   [0]: which of the set of 3 LEDs should change, wraps back to 0 after 2
    *   [1]: turn the LEDs on or off (on = 1, off = 0)
    */
-  uint32_t current = millis();
-  next_frame.not_before = current + delay_ms;
+  next_frame.not_before = millis();
   next_frame.context = { 0, 1 };
 }
 
@@ -192,33 +190,57 @@ void theaterChase(uint32_t c)
   }
 }
 
+void initTheaterChaseRainbow()
+{
+  /**
+   * context:
+   *    [0]: iterates through 1-255, powers the rainbow change
+   *    [1]: which of the set of 3 LEDs should change, wraps back to 0 after 2
+   *    [2]: turn the LEDs on or off (on = 1, off = 0)
+  */
+ next_frame.not_before = millis()
+ next_frame.context = { 0, 0, 1 };
+}
+
 /**
  * Theatre-style crawling lights with rainbow effect
- * TODO: refactor wait
  */
-void theaterChaseRainbow(uint8_t wait)
+void theaterChaseRainbow()
 {
-  static int j = 0;
-
-  for (int q = 0; q < 3; q++)
+  uint32_t current = millis();
+  uint32_t not_before = next_frame.not_before;
+  if (not_before >= 0 && current >= not_before)
   {
-    for (uint16_t i = 0; i < pixels.numPixels(); i = i + 3)
+    next_frame.not_before = -1;
+    int j = next_frame.context[0];
+    int q = next_frame.context[1];
+    byte on_off = next_frame.context[2];
+
+    for (uint16_t i = 0; i < pixels.numPixels(); i += 3)
     {
-      pixels.setPixelColor(i + q, wheel((i + j) % 255)); // turn every third pixel on
+      uint32_t color = wheel((i + j) % 255);
+      if (!on_off)
+        color = 0;
+
+      pixels.setPixelColor(q + i, color);
     }
     pixels.show();
 
-    delay(wait);
-
-    for (uint16_t i = 0; i < pixels.numPixels(); i = i + 3)
+    if (!on_off)
     {
-      pixels.setPixelColor(i + q, 0); // turn every third pixel off
+      next_frame.not_before = 0;
+      next_frame.context[1] = (q + 1) % 3;
+      if (next_frame.context[1] == 0)
+      {
+        next_frame.context[0] = (j + 1) % 256;
+      }
     }
+    else
+    {
+      next_frame.not_before = millis() + delay_ms;
+    }
+    next_frame.context[2] = !on_off;
   }
-
-  j += 1;
-  if (j >= 256)
-    j = 0;
 }
 
 /**
@@ -252,12 +274,12 @@ void display()
     break;
   case LEDS_CHASE_WHITE:
     if (init_new_pattern)
-    {
       initTheaterChase();
-    }
     theaterChase(pixels.Color(255, 255, 255));
     break;
   case LEDS_CHASE_COLOR_CYCLE:
+    if (init_new_pattern)
+      initTheaterChaseRainbow();
     theaterChaseRainbow(10);
     break;
   case LEDS_RAINBOW:
