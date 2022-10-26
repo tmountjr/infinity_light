@@ -114,24 +114,36 @@ void colorSwirl()
   }
 }
 
+/**
+ * context:
+ *   [0]: base wheel value
+ */
+void initRainbow()
+{
+  next_frame.not_before = millis();
+  next_frame.context = { 0 };
+}
+
 /*
  * Shifting rainbow effect
- * TODO: refactor wait
  */
-void rainbow(uint8_t wait)
+void rainbow()
 {
-  static uint16_t j;
-
-  for (uint16_t i = 0; i < pixels.numPixels(); i++)
+  uint32_t current = millis();
+  uint32_t not_before = next_frame.not_before;
+  if (not_before >= 0 && current >= not_before)
   {
-    pixels.setPixelColor(i, wheel((i + j) & 255));
-  }
-  pixels.show();
-  delay(wait);
+    next_frame.not_before = -1;
+    int j = next_frame.context[0];
+    for (uint16_t i = 0; i < pixels.numPixels(); i++)
+    {
+      pixels.setPixelColor(i, wheel((i + j) & 255));
+    }
+    pixels.show();
 
-  j += 1;
-  if (j >= 256)
-    j = 0;
+    next_frame.not_before = millis() + delay_ms;
+    next_frame.context = {(j + 1) % 256};
+  }
 }
 
 /**
@@ -300,7 +312,9 @@ void display()
     theaterChaseRainbow();
     break;
   case LEDS_RAINBOW:
-    rainbow(delay_ms);
+    if (init_new_pattern)
+      initRainbow();
+    rainbow();
     break;
   case LEDS_RAINBOW_CYCLE:
     rainbowCycle(delay_ms);
