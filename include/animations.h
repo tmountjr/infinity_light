@@ -1,6 +1,3 @@
-// TODO: using delay() on the animations is going to potentially cause issues with
-// the interrupts. Better to use millis() and reset the "delay" timer on each change.
-
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 #include <ArduinoSTL.h>
@@ -79,24 +76,41 @@ uint32_t wheel(byte wheelPos)
  */
 void colorWipe(uint32_t c)
 {
-  for (uint16_t i = 0; i < pixels.numPixels(); i++)
-  {
-    pixels.setPixelColor(i, c);
-  }
+  pixels.fill(c);
   pixels.show();
 }
 
-/**
- * Fill the dots one after the other with a color using the specified delay
- * TODO: refactor wait
- */
-void colorWipe(uint32_t c, uint8_t wait)
+void initColorSwirl()
 {
-  for (uint16_t i = 0; i < pixels.numPixels(); i++)
+  /**
+   * context:
+   *   [0]: base wheel color
+   */
+  next_frame.not_before = millis();
+  next_frame.context = { 0 };
+}
+
+/**
+ * Fill the dots one after the other with a color using the specified delay.
+ * Difference between this and rainbow() is that rainbow() animates pixel by pixel
+ * and this one floods the entire thing with the same color.
+ */
+void colorSwirl()
+{
+  uint32_t current = millis();
+  uint32_t not_before = next_frame.not_before;
+  if (not_before >= 0 && current >= not_before)
   {
-    pixels.setPixelColor(i, c);
+    next_frame.not_before = -1;
+    int base = next_frame.context[0];
+
+    uint32_t color = wheel(base);
+
+    pixels.fill(color);
     pixels.show();
-    delay(wait);
+
+    next_frame.not_before = millis() + delay_ms;
+    next_frame.context = {(base + 1) % 256 };
   }
 }
 
@@ -190,6 +204,9 @@ void theaterChase(uint32_t c)
   }
 }
 
+/**
+ * Initialize the next_frame value for the theaterChaseRainbow() method.
+ */
 void initTheaterChaseRainbow()
 {
   /**
@@ -198,7 +215,7 @@ void initTheaterChaseRainbow()
    *    [1]: which of the set of 3 LEDs should change, wraps back to 0 after 2
    *    [2]: turn the LEDs on or off (on = 1, off = 0)
   */
- next_frame.not_before = millis()
+ next_frame.not_before = millis();
  next_frame.context = { 0, 0, 1 };
 }
 
@@ -253,7 +270,7 @@ void display()
   switch (led_pattern)
   {
   case LEDS_OFF:
-    colorWipe(pixels.Color(0, 0, 0), 0); // black, no delay
+    colorWipe(pixels.Color(0, 0, 0)); // black, no delay
     break;
   case LEDS_SOLID_WHITE:
     colorWipe(pixels.Color(255, 255, 255)); // WHITE, no delay
@@ -268,9 +285,9 @@ void display()
     colorWipe(pixels.Color(0, 0, 255)); // BLUE, no delay
     break;
   case LEDS_SOLID_COLOR_CYCLE:
-    base_wheel += 1;
-    base_color = wheel(base_wheel);
-    colorWipe(base_color, 1); // current color, no delay
+    if (init_new_pattern)
+      initColorSwirl();
+    colorSwirl();
     break;
   case LEDS_CHASE_WHITE:
     if (init_new_pattern)
@@ -280,7 +297,7 @@ void display()
   case LEDS_CHASE_COLOR_CYCLE:
     if (init_new_pattern)
       initTheaterChaseRainbow();
-    theaterChaseRainbow(10);
+    theaterChaseRainbow();
     break;
   case LEDS_RAINBOW:
     rainbow(delay_ms);
@@ -290,7 +307,7 @@ void display()
     break;
 
   default:
-    colorWipe(pixels.Color(0, 0, 0), 0); // black, no delay
+    colorWipe(pixels.Color(0, 0, 0)); // black, no delay
     break;
   }
 
