@@ -31,6 +31,9 @@ void setup()
   // Start up the NeoPixels
   pixels.begin();
   pixels.setBrightness(BRIGHTNESS); // use only for init, not as an effect
+
+  // Initialize the led pattern to a solid white
+  led_pattern = led_pattern_type::LEDS_SOLID_WHITE;
 }
 
 void loop() {
