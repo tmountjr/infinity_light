@@ -147,23 +147,35 @@ void rainbow()
 }
 
 /**
- * Equally-distributed rainbow color shift effect
- * TODO: refactor wait
+ * context:
+ *   [0]: base wheel value
  */
-void rainbowCycle(uint8_t wait)
+void initRainbowCycle()
 {
-  static uint16_t j = 0;
+  next_frame.not_before = millis();
+  next_frame.context = {0};
+}
 
-  for (uint16_t i = 0; i < pixels.numPixels(); i++)
+/**
+ * Equally-distributed rainbow color shift effect
+ */
+void rainbowCycle()
+{
+  uint32_t current = millis();
+  uint32_t not_before = next_frame.not_before;
+  if (not_before >= 0 && current >= not_before)
   {
-    pixels.setPixelColor(i, wheel(((i * 256 / pixels.numPixels()) + j) & 255));
+    next_frame.not_before = -1;
+    int j = next_frame.context[0];
+    for (uint16_t i = 0; i < pixels.numPixels(); i++)
+    {
+      pixels.setPixelColor(i, wheel(((i * 256 / pixels.numPixels()) + j) & 255));
+    }
+    pixels.show();
+    
+    next_frame.not_before = millis() + delay_ms;
+    next_frame.context = {(j + 1) % 256};
   }
-  pixels.show();
-  delay(wait);
-
-  j += 1;
-  if (j >= 256 * 5)
-    j = 0;
 }
 
 /**
@@ -317,7 +329,9 @@ void display()
     rainbow();
     break;
   case LEDS_RAINBOW_CYCLE:
-    rainbowCycle(delay_ms);
+    if (init_new_pattern)
+      initRainbowCycle();
+    rainbowCycle();
     break;
 
   default:
