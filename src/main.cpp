@@ -34,6 +34,9 @@ void setup()
 
   // Initialize the led pattern to a solid white
   led_pattern = led_pattern_type::LEDS_SOLID_WHITE;
+
+  Serial.setTxBit(4);
+  Serial.begin(9600);
 }
 
 void loop() {

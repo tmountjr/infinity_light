@@ -290,6 +290,12 @@ void theaterChaseRainbow()
 void display()
 {
   byte init_new_pattern = (int)led_pattern != (int)last_pattern_type;
+  if (init_new_pattern)
+  {
+    char buf[64];
+    sprintf(buf, "old (%d) => new (%d)", last_pattern_type, led_pattern);
+    Serial.println(buf);
+  }
 
   switch (led_pattern)
   {
