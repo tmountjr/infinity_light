@@ -32,6 +32,7 @@ enum led_pattern_type
   LEDS_CHASE_COLOR_CYCLE,
   LEDS_RAINBOW,
   LEDS_RAINBOW_CYCLE,
+  LEDS_HSV_RAINBOW_CYCLE,
   LEDS_LAST // Make sure this item is always *last* in the enum!
 };
 volatile enum led_pattern_type led_pattern;
@@ -101,7 +102,7 @@ void colorSwirl()
   uint32_t not_before = next_frame.not_before;
   if (not_before >= 0 && current >= not_before)
   {
-    next_frame.not_before = -1;
+    next_frame.not_before = UINT32_MAX;
     int base = next_frame.context[0];
 
     uint32_t color = wheel(base);
@@ -133,7 +134,7 @@ void rainbow()
   uint32_t not_before = next_frame.not_before;
   if (not_before >= 0 && current >= not_before)
   {
-    next_frame.not_before = -1;
+    next_frame.not_before = UINT32_MAX;
     int j = next_frame.context[0];
     for (uint16_t i = 0; i < pixels.numPixels(); i++)
     {
@@ -165,7 +166,7 @@ void rainbowCycle()
   uint32_t not_before = next_frame.not_before;
   if (not_before >= 0 && current >= not_before)
   {
-    next_frame.not_before = -1;
+    next_frame.not_before = UINT32_MAX;
     int j = next_frame.context[0];
     for (uint16_t i = 0; i < pixels.numPixels(); i++)
     {
@@ -175,6 +176,33 @@ void rainbowCycle()
     
     next_frame.not_before = millis() + delay_ms;
     next_frame.context = {(j + 1) % 256};
+  }
+}
+
+void initHsvRainbowCycle()
+{
+  next_frame.not_before = millis();
+  next_frame.context = {0};
+}
+
+void hsvRainbowCycle()
+{
+  uint32_t current = millis();
+  uint32_t not_before = next_frame.not_before;
+  if (not_before >= 0 && current >= not_before)
+  {
+    next_frame.not_before = UINT32_MAX;
+    int j = next_frame.context[0];
+    for (uint16_t i = 0; i < pixels.numPixels(); i++)
+    {
+      // Map the base color "j" from 0-359 to 0-65535.
+      long mapValue = map((j + i) % 360, 0, 359, 0, 65535);
+      pixels.setPixelColor(i, pixels.ColorHSV(((i * 65536 / pixels.numPixels()) + mapValue) & 65536));
+    }
+    pixels.show();
+
+    next_frame.not_before = millis() + delay_ms;
+    next_frame.context = {(j + 1) % 360};
   }
 }
 
@@ -203,7 +231,7 @@ void theaterChase(uint32_t c)
   {
     // Prevent race condition by blanking out the not_before; it will be reset
     // at the end of the method.
-    next_frame.not_before = -1;
+    next_frame.not_before = UINT32_MAX;
     int q = next_frame.context[0];
     byte on_off = next_frame.context[1]; // on = 1, off = 0
 
@@ -252,7 +280,7 @@ void theaterChaseRainbow()
   uint32_t not_before = next_frame.not_before;
   if (not_before >= 0 && current >= not_before)
   {
-    next_frame.not_before = -1;
+    next_frame.not_before = UINT32_MAX;
     int j = next_frame.context[0];
     int q = next_frame.context[1];
     byte on_off = next_frame.context[2];
@@ -338,6 +366,11 @@ void display()
     if (init_new_pattern)
       initRainbowCycle();
     rainbowCycle();
+    break;
+  case LEDS_HSV_RAINBOW_CYCLE:
+    if (init_new_pattern)
+      initHsvRainbowCycle();
+    hsvRainbowCycle();
     break;
 
   default:
