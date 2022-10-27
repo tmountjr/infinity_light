@@ -1,17 +1,11 @@
 #include <Arduino.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <SoftwareSerial.h>
-
-#define BUTTON_PIN 1
-#define AT_TX_PIN 4
-#define AT_RX_PIN 3  // unused
-
-SoftwareSerial atSerial(AT_RX_PIN, AT_TX_PIN);
 
 // Move the animations into a separate file to keep things clean.
 #include "animations.h"
 
+#define BUTTON_PIN 1
 
 volatile byte last_button_state = LOW;
 
@@ -40,8 +34,6 @@ void setup()
 
   // Initialize the led pattern to a solid white
   led_pattern = led_pattern_type::LEDS_SOLID_WHITE;
-
-  atSerial.begin(9600);
 }
 
 void loop() {
