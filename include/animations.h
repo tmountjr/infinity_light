@@ -239,8 +239,8 @@ void initTheaterChaseRainbow()
    *    [1]: which of the set of 3 LEDs should change, wraps back to 0 after 2
    *    [2]: turn the LEDs on or off (on = 1, off = 0)
   */
- next_frame.not_before = millis();
- next_frame.context = { 0, 0, 1 };
+  next_frame.not_before = millis();
+  next_frame.context = { 0, 0, 1 };
 }
 
 /**
@@ -290,6 +290,12 @@ void theaterChaseRainbow()
 void display()
 {
   byte init_new_pattern = (int)led_pattern != (int)last_pattern_type;
+  if (init_new_pattern) {
+    char buf[64];
+    sprintf(buf, "%d (old) -> %d (new)", (int)last_pattern_type, (int)led_pattern);
+    atSerial.println(buf);
+    atSerial.flush();
+  }
 
   switch (led_pattern)
   {
