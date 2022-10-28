@@ -11,7 +11,8 @@ using namespace std;
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_LEDS, PIXEL_PIN);
 
 uint8_t base_wheel = 0; // default to white base
-uint16_t delay_ms = 20;
+uint16_t delay_ms = 25;
+uint16_t chase_delay_ms = 250;
 uint32_t base_color = 0;
 
 struct Frame
@@ -250,7 +251,7 @@ void theaterChase(uint32_t c)
       next_frame.not_before = 0;
       next_frame.context[0] = (q + 1) % 3;
     } else {
-      next_frame.not_before = millis() + delay_ms;
+      next_frame.not_before = millis() + chase_delay_ms;
     }
     next_frame.context[1] = !on_off;
   }
@@ -306,7 +307,7 @@ void theaterChaseRainbow()
     }
     else
     {
-      next_frame.not_before = millis() + delay_ms;
+      next_frame.not_before = millis() + chase_delay_ms;
     }
     next_frame.context[2] = !on_off;
   }
@@ -318,12 +319,12 @@ void theaterChaseRainbow()
 void display()
 {
   byte init_new_pattern = (int)led_pattern != (int)last_pattern_type;
-  if (init_new_pattern)
-  {
-    char buf[64];
-    sprintf(buf, "old (%d) => new (%d)", last_pattern_type, led_pattern);
-    Serial.println(buf);
-  }
+  // if (init_new_pattern)
+  // {
+  //   char buf[64];
+  //   sprintf(buf, "old (%d) => new (%d)", last_pattern_type, led_pattern);
+  //   Serial.println(buf);
+  // }
 
   switch (led_pattern)
   {
