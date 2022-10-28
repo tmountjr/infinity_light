@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define NUM_LEDS 22 // Probably 66 at the end of the day
+#define NUM_LEDS 46 // Probably 70 at the end of the day
 #define BRIGHTNESS 255
 #define PIXEL_PIN 0
 
