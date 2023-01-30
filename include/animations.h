@@ -4,8 +4,8 @@
 
 using namespace std;
 
-#define NUM_LEDS 69
-#define BRIGHTNESS 255
+#define NUM_LEDS 160
+#define BRIGHTNESS 128
 #define PIXEL_PIN 0
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_LEDS, PIXEL_PIN);
