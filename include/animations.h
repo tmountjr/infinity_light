@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define NUM_LEDS 160
+#define NUM_LEDS 162
 #define BRIGHTNESS 128
 #define PIXEL_PIN 0
 
